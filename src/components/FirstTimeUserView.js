@@ -85,7 +85,7 @@ const sendSettingsToBackend = async (settings) => {
 };
 
 const FirstTimeUserView = ({ onSaveSettings }) => {
-  const [digestTime, setDigestTime] = useState('9:00 AM');
+  const [weekdayTime, setWeekdayTime] = useState('9:00 AM');
   const [weekendTime, setWeekendTime] = useState('11:00 AM');
   const [selectedTimeZone, setSelectedTimeZone] = useState('UTC+08:00');
   const [selectedWeekdays, setSelectedWeekdays] = useState(['monday', 'wednesday', 'friday']);
@@ -97,8 +97,8 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
       
       // create user settings object, keep the original format
       const settings = {
-        digestTime: digestTime,
-        weekendTime,
+        weekdayTime: weekdayTime,
+        weekendTime: weekendTime,
         timeZone: selectedTimeZone,
         weekdays: selectedWeekdays,
       };
@@ -131,8 +131,8 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
     }
   };
 
-  const onDigestTimeChange = (event, option) => {
-    setDigestTime(option.key);
+  const onWeekdayTimeChange = (event, option) => {
+    setWeekdayTime(option.key);
   };
 
   const onWeekendTimeChange = (event, option) => {
@@ -165,8 +165,8 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
         <Dropdown
           placeholder="Select time"
           options={times}
-          selectedKey={digestTime}
-          onChange={onDigestTimeChange}
+          selectedKey={weekdayTime}
+          onChange={onWeekdayTimeChange}
           styles={{ dropdown: { width: '50%' } }}
         />
         
