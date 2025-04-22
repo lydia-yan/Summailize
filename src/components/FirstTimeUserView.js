@@ -1,0 +1,206 @@
+import React, { useState } from 'react';
+import { 
+  Text, 
+  Stack, 
+  PrimaryButton, 
+  Dropdown, 
+  Label, 
+  ComboBox 
+} from '@fluentui/react';
+
+const timeZones = [
+  { key: 'UTC-12:00', text: '(UTC-12:00) International Date Line West' },
+  { key: 'UTC-11:00', text: '(UTC-11:00) Coordinated Universal Time-11' },
+  { key: 'UTC-10:00', text: '(UTC-10:00) Hawaii' },
+  { key: 'UTC-09:00', text: '(UTC-09:00) Alaska' },
+  { key: 'UTC-08:00', text: '(UTC-08:00) Pacific Time (US & Canada)' },
+  { key: 'UTC-07:00', text: '(UTC-07:00) Mountain Time (US & Canada)' },
+  { key: 'UTC-06:00', text: '(UTC-06:00) Central Time (US & Canada)' },
+  { key: 'UTC-05:00', text: '(UTC-05:00) Eastern Time (US & Canada)' },
+  { key: 'UTC-04:00', text: '(UTC-04:00) Atlantic Time (Canada)' },
+  { key: 'UTC-03:00', text: '(UTC-03:00) Brasilia' },
+  { key: 'UTC-02:00', text: '(UTC-02:00) Coordinated Universal Time-02' },
+  { key: 'UTC-01:00', text: '(UTC-01:00) Azores' },
+  { key: 'UTC+00:00', text: '(UTC+00:00) Dublin, Edinburgh, Lisbon, London' },
+  { key: 'UTC+01:00', text: '(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna' },
+  { key: 'UTC+02:00', text: '(UTC+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius' },
+  { key: 'UTC+03:00', text: '(UTC+03:00) Moscow, St. Petersburg, Volgograd' },
+  { key: 'UTC+08:00', text: '(UTC+08:00) Beijing, Chongqing, Hong Kong, Urumqi' },
+];
+
+const days = [
+  { key: 'monday', text: 'Monday' },
+  { key: 'tuesday', text: 'Tuesday' },
+  { key: 'wednesday', text: 'Wednesday' },
+  { key: 'thursday', text: 'Thursday' },
+  { key: 'friday', text: 'Friday' },
+  { key: 'saturday', text: 'Saturday' },
+  { key: 'sunday', text: 'Sunday' },
+];
+
+const times = [
+  { key: 'none', text: 'None' },
+  { key: '8:00 AM', text: '8:00 AM' },
+  { key: '9:00 AM', text: '9:00 AM' },
+  { key: '10:00 AM', text: '10:00 AM' },
+  { key: '11:00 AM', text: '11:00 AM' },
+  { key: '12:00 PM', text: '12:00 PM' },
+  { key: '1:00 PM', text: '1:00 PM' },
+  { key: '2:00 PM', text: '2:00 PM' },
+  { key: '3:00 PM', text: '3:00 PM' },
+  { key: '4:00 PM', text: '4:00 PM' },
+  { key: '5:00 PM', text: '5:00 PM' },
+  { key: '6:00 PM', text: '6:00 PM' },
+];
+
+/**
+ * Send user settings to backend
+ * @param {object} settings - user settings
+ * @returns {Promise<object>} backend response
+ */
+const sendSettingsToBackend = async (settings) => {
+  try {
+    console.log('Sending settings to backend:', JSON.stringify(settings));
+    
+    // the real API call
+    // const response = await fetch('https://backend-api/settings', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(settings)
+    // });
+    // return await response.json();
+    
+    // simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    return { 
+      success: true, 
+      message: 'Settings saved to server',
+      savedSettings: settings
+    };
+  } catch (error) {
+    console.error('Failed to send settings to backend:', error);
+    throw error;
+  }
+};
+
+const FirstTimeUserView = ({ onSaveSettings }) => {
+  const [weekdayTime, setWeekdayTime] = useState('9:00 AM');
+  const [weekendTime, setWeekendTime] = useState('11:00 AM');
+  const [selectedTimeZone, setSelectedTimeZone] = useState('UTC+08:00');
+  const [selectedWeekdays, setSelectedWeekdays] = useState(['monday', 'wednesday', 'friday']);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveSettings = async () => {
+    try {
+      setIsSaving(true);
+      
+      // create user settings object, keep the original format
+      const settings = {
+        weekdayTime: weekdayTime,
+        weekendTime: weekendTime,
+        timeZone: selectedTimeZone,
+        weekdays: selectedWeekdays,
+      };
+
+      // save to local storage
+      localStorage.setItem('emailSummarySettings', JSON.stringify(settings));
+
+      // send to backend
+      await sendSettingsToBackend(settings);
+
+      // notify parent component
+      onSaveSettings(settings);
+      
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const onTimeZoneChange = (event, option) => {
+    setSelectedTimeZone(option.key);
+  };
+
+  const onWeekdaysChange = (event, option) => {
+    if (option.selected) {
+      setSelectedWeekdays([...selectedWeekdays, option.key]);
+    } else {
+      setSelectedWeekdays(selectedWeekdays.filter(day => day !== option.key));
+    }
+  };
+
+  const onWeekdayTimeChange = (event, option) => {
+    setWeekdayTime(option.key);
+  };
+
+  const onWeekendTimeChange = (event, option) => {
+    setWeekendTime(option.key);
+  };
+
+  return (
+    <Stack tokens={{ childrenGap: 20 }}>
+      <Text variant="xLarge" block>
+        Welcome to Email Digest Assistant
+      </Text>
+      <Text>
+        Please set up when you would like to receive email digests.
+        We'll automatically provide you with summaries based on your preferences.
+      </Text>
+
+      <div className="settings-group">
+        <Label>Time Zone</Label>
+        <Dropdown
+          placeholder="Select your time zone"
+          options={timeZones}
+          selectedKey={selectedTimeZone}
+          onChange={onTimeZoneChange}
+          styles={{ dropdown: { width: '100%' } }}
+        />
+      </div>
+
+      <div className="settings-group">
+        <Label>Weekday Digest Time</Label>
+        <Dropdown
+          placeholder="Select time"
+          options={times}
+          selectedKey={weekdayTime}
+          onChange={onWeekdayTimeChange}
+          styles={{ dropdown: { width: '50%' } }}
+        />
+        
+        <div style={{ marginTop: 10 }}>
+          <Label>Weekdays</Label>
+          <ComboBox
+            multiSelect
+            options={days.filter(day => day.key !== 'saturday' && day.key !== 'sunday')}
+            selectedKey={selectedWeekdays}
+            onChange={onWeekdaysChange}
+          />
+        </div>
+      </div>
+
+      <div className="settings-group">
+        <Label>Weekend Digest Time</Label>
+        <Dropdown
+          placeholder="Select time"
+          options={times}
+          selectedKey={weekendTime}
+          onChange={onWeekendTimeChange}
+          styles={{ dropdown: { width: '50%' } }}
+        />
+      </div>
+
+      <div className="button-container" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <PrimaryButton 
+          text={isSaving ? "Saving..." : "Save Settings"}
+          onClick={handleSaveSettings}
+          disabled={isSaving}
+        />
+      </div>
+    </Stack>
+  );
+};
+
+export default FirstTimeUserView; 
