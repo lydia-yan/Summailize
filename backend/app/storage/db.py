@@ -18,9 +18,32 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = cred_path
 db = firestore.Client()
 
 def store_user_settings(user_id: str, settings: dict):
-    doc_ref = db.collection('users').document(user_id)
-    doc_ref.set({'settings': settings}, merge=True)
-    # confirm the format of stoeage ??
+    """
+    Stores user settings directly on the user document.
+    Expected settings format:
+    {
+        "weekdayTime": "9:00 AM",
+        "weekendTime": "11:00 AM",
+        "timeZone": "UTC+08:00",
+        "weekdays": ["monday", "wednesday", "friday"]
+    }
+    """
+    user_ref = db.collection("users").document(user_id)
+    user_ref.set({"settings": settings}, merge=True)
+
+
+# add a function 
+def get_user_setting(user_id:str):
+    """
+    Retrieves all user settings directly from the root of the document.
+    Returns None if the document does not exist.
+    """
+    doc_ref = db.collection("users").document(user_id)
+    doc = doc_ref.get()
+    if doc.exists:
+        data = doc.to_dict()
+        return data.get("settings", {})
+    return None
 
 
 def store_per_email_summary(user_id: str, email_data: dict):
