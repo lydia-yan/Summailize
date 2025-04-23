@@ -22,14 +22,15 @@ This folder handles all interactions with **Google Firestore**, used to store:
 2. Click **Create Service Account**
     - Name: `gmail-extension-service`
     - Role: **Cloud Datastore User**
-3. Click **Create Key → JSON**
+3. Go to the service account you just created and find the `3 dots` at the end of the row in the  → **"Manage keys"**
+4. Click **Create Key → JSON** and click **Create**
     - This downloads a `.json` key file (keep this safe!)
-4. Save it in your project folder in root as `firebase_key.json`
-5. Add the file name in the `.env` files
+5. Save it in your project folder in root as `firebase_key.json`
+6. Add the file name in the `.env` files
 ```
 GOOGLE_APPLICATION_CREDENTIALS=./firebase_key.json
 ```
-6. You're all set! 
+1. You're all set! 
 
 ### 3. Install Required Python Packages
 (You can skip this step if you're using `requirements.txt` — all dependencies are already listed there.)
