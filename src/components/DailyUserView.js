@@ -73,7 +73,7 @@ const fetchPeriodicSummary = async () => {
     // return await response.json();
     
     
-    // simulate API delay - now using actual API, so commented out
+    // simulate API delay - when using actual API, commented out
     await new Promise(resolve => setTimeout(resolve, 300));
     
     // return the mock data
