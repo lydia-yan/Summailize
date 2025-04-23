@@ -21,7 +21,8 @@ export const headerStyles = mergeStyles({
 export const subtitleStyles = mergeStyles({
   fontSize: '14px',
   color: '#666666',
-  marginBottom: '20px',
+  marginBottom: '4px',
+  marginTop: '2px',
   fontFamily: 'Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif'
 });
 

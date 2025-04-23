@@ -5,7 +5,8 @@ import {
   PrimaryButton, 
   Dropdown, 
   Label, 
-  ComboBox 
+  ComboBox,
+  DefaultButton
 } from '@fluentui/react';
 
 const timeZones = [
@@ -139,64 +140,106 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
     setWeekendTime(option.key);
   };
 
+  // 自定义按钮样式
+  const customButtonStyles = {
+    root: {
+      backgroundColor: '#0b57d0',
+      borderRadius: '8px',
+      padding: '0 24px',
+      height: '40px !important',
+      transition: 'all 0.2s ease',
+    },
+    rootHovered: {
+      backgroundColor: '#1a73e8',
+    },
+    label: {
+      fontWeight: 600,
+      fontSize: '15px'
+    }
+  };
+  
+  // 自定义下拉框样式
+  const dropdownStyles = {
+    dropdown: { 
+      width: '100%',
+      selectors: {
+        '.ms-Dropdown-title': {
+          borderRadius: '6px'
+        }
+      }
+    }
+  };
+  
+  const timeDropdownStyles = {
+    dropdown: { 
+      width: '50%',
+      selectors: {
+        '.ms-Dropdown-title': {
+          borderRadius: '6px'
+        }
+      }
+    }
+  };
+
   return (
-    <Stack tokens={{ childrenGap: 20 }}>
-      <Text variant="xLarge" block>
+    <Stack tokens={{ childrenGap: 24 }} style={{ marginTop: '40px', padding: '0 0' }}>
+      <Text variant="xLarge" block style={{ fontWeight: 600, fontSize: '24px', marginBottom: '8px' }}>
         Welcome to Email Digest Assistant
       </Text>
-      <Text>
-        Please set up when you would like to receive email digests.
-        We'll automatically provide you with summaries based on your preferences.
+      <Text style={{ fontSize: '15px', lineHeight: '1.5', marginBottom: '12px' }}>
+        Please set up when you would like to receive email digests. We'll automatically provide you with summaries based on your preferences.
       </Text>
 
-      <div className="settings-group">
-        <Label>Time Zone</Label>
+      <div className="settings-group" style={{ marginTop: '12px' }}>
+        <Label style={{ marginBottom: '8px', fontSize: '15px' }}>Time Zone</Label>
         <Dropdown
           placeholder="Select your time zone"
           options={timeZones}
           selectedKey={selectedTimeZone}
           onChange={onTimeZoneChange}
-          styles={{ dropdown: { width: '100%' } }}
+          styles={dropdownStyles}
         />
       </div>
 
-      <div className="settings-group">
-        <Label>Weekday Digest Time</Label>
+      <div className="settings-group" style={{ marginTop: '8px' }}>
+        <Label style={{ marginBottom: '8px', fontSize: '15px' }}>Weekday Digest Time</Label>
         <Dropdown
           placeholder="Select time"
           options={times}
           selectedKey={weekdayTime}
           onChange={onWeekdayTimeChange}
-          styles={{ dropdown: { width: '50%' } }}
+          styles={timeDropdownStyles}
         />
         
-        <div style={{ marginTop: 10 }}>
-          <Label>Weekdays</Label>
+        <div style={{ marginTop: 16 }}>
+          <Label style={{ marginBottom: '8px', fontSize: '15px' }}>Weekdays</Label>
           <ComboBox
             multiSelect
             options={days.filter(day => day.key !== 'saturday' && day.key !== 'sunday')}
             selectedKey={selectedWeekdays}
             onChange={onWeekdaysChange}
+            styles={dropdownStyles}
           />
         </div>
       </div>
 
-      <div className="settings-group">
-        <Label>Weekend Digest Time</Label>
+      <div className="settings-group" style={{ marginTop: '8px' }}>
+        <Label style={{ marginBottom: '8px', fontSize: '15px' }}>Weekend Digest Time</Label>
         <Dropdown
           placeholder="Select time"
           options={times}
           selectedKey={weekendTime}
           onChange={onWeekendTimeChange}
-          styles={{ dropdown: { width: '50%' } }}
+          styles={timeDropdownStyles}
         />
       </div>
 
-      <div className="button-container" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <div className="button-container" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
         <PrimaryButton 
           text={isSaving ? "Saving..." : "Save Settings"}
           onClick={handleSaveSettings}
           disabled={isSaving}
+          styles={customButtonStyles}
         />
       </div>
     </Stack>

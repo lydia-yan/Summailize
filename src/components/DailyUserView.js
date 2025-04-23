@@ -54,15 +54,14 @@ const fetchPeriodicSummary = async () => {
   try {
     console.log('get periodic summary');
 
-    // call the actual API
+    // // call the actual API
     // const response = await fetch('https://backend-api/summarize/overall', {
     //   method: 'POST',
     //   headers: {
     //     'Content-Type': 'application/json'
     //   },
-    //   // can not pass the time range parameter, let the backend return the latest summary
-    //   body: JSON.stringify({
-    //     markAsRead: true  // add this parameter to tell the backend to mark as read
+    //   // do not pass the markAsRead parameter
+    //   body: JSON.stringify({})
     // });
     
     // // check the response status
@@ -73,11 +72,13 @@ const fetchPeriodicSummary = async () => {
     // // return the actual data
     // return await response.json();
     
-    // simulate API delay
+    
+    // simulate API delay - now using actual API, so commented out
     await new Promise(resolve => setTimeout(resolve, 300));
     
     // return the mock data
     return mockPeriodicSummary;
+  
   } catch (error) {
     console.error('get periodic summary failed:', error);
     throw error;
@@ -158,6 +159,7 @@ const DailyUserView = ({ onReturnToSettings }) => {
     userSettings: JSON.parse(localStorage.getItem('emailSummarySettings')) || {},
     summaryDateTime: '',
     isPhaseVisible: true,
+    isPhaseCollapsed: false,
     emailProcessingError: null,
     lastHandledEmailId: null
   });
@@ -292,6 +294,14 @@ const DailyUserView = ({ onReturnToSettings }) => {
     setUiState(prev => ({ ...prev, isPhaseVisible: false }));
   }, []);
   
+  // handle the toggle of the phase summary
+  const handleTogglePhaseSummary = useCallback(() => {
+    setUiState(prev => ({ 
+      ...prev, 
+      isPhaseCollapsed: !prev.isPhaseCollapsed 
+    }));
+  }, []);
+  
   // return to the settings page
   const handleReturnToSettings = useCallback(() => {
     if (onReturnToSettings) {
@@ -317,24 +327,37 @@ const DailyUserView = ({ onReturnToSettings }) => {
         <div className={sectionStyles}>
           <div className={headerStyles}>
             <Text variant="large" className={textStyles.title}>{uiState.phaseSummary.title}</Text>
-            <IconButton
-              iconProps={{ iconName: 'Cancel' }}
-              title="Close"
-              ariaLabel="Close summary"
-              onClick={handleClosePhaseSummary}
-            />
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton
+                iconProps={{ iconName: uiState.isPhaseCollapsed ? 'ChevronDown' : 'ChevronUp' }}
+                title={uiState.isPhaseCollapsed ? "展开" : "收起"}
+                ariaLabel={uiState.isPhaseCollapsed ? "Expand summary" : "Collapse summary"}
+                onClick={handleTogglePhaseSummary}
+                styles={{ root: { marginRight: '4px' } }}
+              />
+              <IconButton
+                iconProps={{ iconName: 'Cancel' }}
+                title="关闭"
+                ariaLabel="Close summary"
+                onClick={handleClosePhaseSummary}
+              />
+            </div>
           </div>
           
           {uiState.summaryDateTime && (
             <Text className={subtitleStyles}>{uiState.summaryDateTime}</Text>
           )}
           
-          {uiState.phaseSummary.items.map(item => (
-            <div key={item.id} style={{ marginBottom: '12px' }}>
-              <Text variant="mediumPlus" className={textStyles.category}>{item.category}</Text>
-              <Text className={textStyles.content}>{item.content}</Text>
+          {!uiState.isPhaseCollapsed && (
+            <div style={{ marginTop: '16px' }}>
+              {uiState.phaseSummary.items.map(item => (
+                <div key={item.id} style={{ marginBottom: '12px' }}>
+                  <Text variant="mediumPlus" className={textStyles.category}>{item.category}</Text>
+                  <Text className={textStyles.content}>{item.content}</Text>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
       

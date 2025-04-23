@@ -17,7 +17,7 @@ code {
 .ms-Dropdown-title {
   height: 34px !important;
   line-height: 34px !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
 }
 
 .ms-Dropdown-caretDownWrapper {
@@ -26,17 +26,26 @@ code {
 }
 
 .ms-Button-root {
-  border-radius: 4px !important;
-  height: 36px !important;
+  border-radius: 8px !important;
+  height: 40px !important;
+  transition: all 0.2s ease !important;
 }
 
 .ms-Button--primary {
   background-color: #0b57d0 !important;
 }
 
+.ms-Button--primary:hover {
+  background-color: #1a73e8 !important;
+}
+
+.ms-Button-label {
+  font-weight: 600 !important;
+}
+
 .ms-TextField-field {
   height: 34px !important;
-  border-radius: 4px !important;
+  border-radius: 6px !important;
 }
 
 .ms-Checkbox-checkbox {
