@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 from azure.ai.textanalytics import TextAnalyticsClient
 from azure.core.credentials import AzureKeyCredential
-from config import AZURE_LANGUAGE_KEY , AZURE_LANGUAGE_ENDPOINT
+from backend.app.summarizer.azure_agent.config import AZURE_LANGUAGE_KEY , AZURE_LANGUAGE_ENDPOINT
 
 
 def clean_email_body(text):

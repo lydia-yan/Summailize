@@ -91,7 +91,7 @@ def store_overall_summary(user_id: str, overall_data: dict, last_email_timestamp
     """
     doc_ref = db.collection("users").document(user_id)
     doc_ref.set({
-        "overall_summary": overall_data["overall_summary"],
+        "overall_summary": overall_data,
         "last_email_timestamp": last_email_timestamp
     }, merge=True)
 
@@ -114,21 +114,14 @@ def get_all_users():
 
 
 # Deletion
-def delete_all_overall_summaries(user_id: str):
-    """
-    Deletes all documents under the 'overall_summaries' subcollection for a user.
-    """
-    col_ref = db.collection("users").document(user_id).collection("overall_summaries")
-    docs = col_ref.stream()
-
-    for doc in docs:
-        doc.reference.delete()
-        print(f"Deleted overall summary document {doc.id} for user {user_id}")
-
 def delete_user_data(user_id: str):
-    """
-    Deletes the entire user document (including all subcollections and data).
-    """
-    user_ref = db.collection("users").document(user_id)
-    user_ref.delete()
-    print(f"Deleted all data for user {user_id}")
+    user_doc_ref = db.collection("users").document(user_id)
+
+    subcollections = user_doc_ref.collections()
+    for subcol in subcollections:
+        docs = subcol.stream()
+        for doc in docs:
+            doc.reference.delete()
+
+    print(f"Deleting main user doc: {user_id}")
+    user_doc_ref.delete()

@@ -3,8 +3,8 @@ from openai import AzureOpenAI
 from collections import defaultdict
 
 
-from config import AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT
-from prompt_templates import OVERALL_SUMMARY_PROMPT,OVERALL_SUMMARY_PROMPT_1, OVERALL_SUMMARY_PROMPT_2
+from backend.app.summarizer.azure_agent.config import AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT
+from backend.app.summarizer.azure_agent.prompt_templates import OVERALL_SUMMARY_PROMPT,OVERALL_SUMMARY_PROMPT_1, OVERALL_SUMMARY_PROMPT_2
 
 client = AzureOpenAI(
     api_key=AZURE_OPENAI_API_KEY,

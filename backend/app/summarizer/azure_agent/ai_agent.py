@@ -1,6 +1,6 @@
-from email_cleaner import summarize_emails
-from email_categorizer import decide_category_from_summary
-from email_summarizer import group_summaries_by_category, ai_summarize
+from backend.app.summarizer.azure_agent.email_cleaner import summarize_emails
+from backend.app.summarizer.azure_agent.email_categorizer import decide_category_from_summary
+from backend.app.summarizer.azure_agent.email_summarizer import group_summaries_by_category, ai_summarize
 
 def per_summarize(emails):
     # Summerize per email and get the data
