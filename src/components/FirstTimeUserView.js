@@ -64,21 +64,12 @@ const sendSettingsToBackend = async (settings) => {
     console.log('Sending settings to backend:', JSON.stringify(settings));
     
     // the real API call
-    // const response = await fetch('https://backend-api/settings', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(settings)
-    // });
-    // return await response.json();
-    
-    // simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    return { 
-      success: true, 
-      message: 'Settings saved to server',
-      savedSettings: settings
-    };
+    const response = await fetch('http://localhost:8000/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings)
+    });
+    return await response.json();
   } catch (error) {
     console.error('Failed to send settings to backend:', error);
     throw error;
@@ -111,7 +102,7 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
       await sendSettingsToBackend(settings);
 
       // notify parent component
-      onSaveSettings(settings);
+      onSaveSettings(settings); 
       
     } catch (error) {
       console.error('Failed to save settings:', error);

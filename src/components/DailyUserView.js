@@ -22,28 +22,24 @@ const { emailSummary: mockEmailSummary, periodicSummary: mockPeriodicSummary } =
 const sendEmailUrlToBackend = async (emailUrl, userSettings) => {
   console.log('Getting email summary, URL:', emailUrl);
   
-  // Return fixed mock data during testing phase
-  return {
-    subject: 'Test Email Summary',
-    sender: 'test@example.com',
-    summary: 'This is a fixed summary content for testing phase. After actual API integration, real email summary data will be returned here.'
-  };
-  
-  /* Actual API call code - temporarily commented out
   try {
-    const response = await fetch('https://backend-api/summarize/per', {
+    const response = await fetch('http://localhost:8000/api/summarize/per', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ emailUrl, userSettings })
     });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+    
     return await response.json();
   } catch (error) {
     console.error('API call failed:', error);
     throw error;
   }
-  */
 };
 
 /**
@@ -54,31 +50,24 @@ const fetchPeriodicSummary = async () => {
   try {
     console.log('get periodic summary');
 
-    // // call the actual API
-    // const response = await fetch('https://backend-api/summarize/overall', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json'
-    //   },
-    //   // do not pass the markAsRead parameter
-    //   body: JSON.stringify({})
-    // });
+    // call the actual API
+    const response = await fetch('http://localhost:8000/api/summarize/overall', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      // do not pass the markAsRead parameter
+      body: JSON.stringify({})
+    });
     
-    // // check the response status
-    // if (!response.ok) {
-    //   throw new Error(`API error: ${response.status}`);
-    // }
+    // check the response status
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
     
-    // // return the actual data
-    // return await response.json();
+    // return the actual data
+    return await response.json();
     
-    
-    // simulate API delay - when using actual API, commented out
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // return the mock data
-    return mockPeriodicSummary;
-  
   } catch (error) {
     console.error('get periodic summary failed:', error);
     throw error;
