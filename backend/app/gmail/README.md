@@ -15,7 +15,7 @@
    It parses the Gmail message ID from the URL, loads user-specific settings (such as time zone and display preferences), and checks whether the email summary already exists in the EmailCache database.
 
 4. **fetch_emails.py retrieves and cleans the email**
-
+          
    This module uses the Gmail API to fetch the email contents. It decodes the message body, extracts key metadata (subject, sender, attachments), and formats the timestamp using utilities from time_utils.py.
 
 5. **AI client.py calls the AI summarizer**

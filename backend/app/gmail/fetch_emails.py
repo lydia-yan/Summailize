@@ -168,7 +168,13 @@ def email_id_from_url(url: str) -> str | None:
 
 # ─── CLI test ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    from dotenv import load_dotenv
+    load_dotenv()
     # 1) test single email (replace with a real message ID)
+    url = "https://mail.google.com/mail/u/0/?tab=rm&ogbl#inbox/FMfcgzQbdrPGwzjwZGDQmnrqwMVbjdfl"
+    msg_id = email_id_from_url(url)
+    email = get_single_email(msg_id, "UTC+08:00")
+    print(email)
     # single = get_single_email("YOUR_MESSAGE_ID", "UTC+08:00")
     # print(json.dumps(single, ensure_ascii=False, indent=2))
 
