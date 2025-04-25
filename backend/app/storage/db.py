@@ -17,6 +17,19 @@ if not cred_path:
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = cred_path
 db = firestore.Client()
 
+
+def save_tokens(user_id, access_token, refresh_token, expiry):
+    db.collection("user_tokens").document(user_id).set({
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_expiry": expiry
+    })
+
+def get_tokens(user_id):
+    doc = db.collection("user_tokens").document(user_id).get()
+    return doc.to_dict() if doc.exists else None
+
+
 def store_user_settings(user_id: str, settings: dict):
     """
     Stores user settings directly on the user document.

@@ -1,7 +1,9 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, redirect
 import json
 from datetime import datetime
 import logging
+from app.auth.oauth_handler import get_authorization_url, handle_oauth_callback
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -14,6 +16,23 @@ api = Blueprint('api', __name__, url_prefix='/api')
 # In a real application, a database should be used
 user_settings = {}
 
+# user authoerize gmail usage
+@api.route("/login")
+def login():
+    return redirect(get_authorization_url())
+
+@api.route("/oauth2callback")
+def oauth2callback():
+    user_email = handle_oauth_callback()
+    return redirect(f"/connected?email={user_email}")
+
+@api.route("/get-emails")
+def get_emails():
+    user_email = request.args.get("user_id")
+    emails = list_emails(user_email) #replace the function from fetch_email.py
+    return jsonify(emails) 
+
+# summarize
 @api.route('/summarize/per', methods=['POST'])
 def summarize_email():
     """

@@ -52,4 +52,4 @@ coverage
 
 # secrets
 .env 
-firebase_key.json
+credentials/

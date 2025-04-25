@@ -1,5 +1,26 @@
 from typing import Optional, Dict, List
 
+class UserToken:
+    def __init__(self, access_token: str, refresh_token: str, token_expiry: datetime):
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+        self.token_expiry = token_expiry
+
+    def to_dict(self):
+        return {
+            "access_token": self.access_token,
+            "refresh_token": self.refresh_token,
+            "token_expiry": self.token_expiry.isoformat()
+        }
+
+    @staticmethod
+    def from_dict(data):
+        return UserToken(
+            access_token=data["access_token"],
+            refresh_token=data["refresh_token"],
+            token_expiry=datetime.fromisoformat(data["token_expiry"])
+        )
+    
 
 class UserSettings:
     def __init__(self, summary_time: str = "08:00"):
@@ -112,3 +133,5 @@ class OverallSummary:
             overall_summary=categories,
             last_email_timestamp=data.get("last_email_timestamp", "")
         )
+    
+

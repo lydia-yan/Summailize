@@ -1,4 +1,4 @@
-from backend.app.storage.db import db, store_per_email_summary, get_per_email_summary, store_overall_summary
+from backend.app.storage.db import store_per_email_summary, get_per_email_summary, store_overall_summary
 from typing import List, Dict
 from backend.app.summarizer.azure_agent.ai_agent import per_summarize, overall_summarize
 

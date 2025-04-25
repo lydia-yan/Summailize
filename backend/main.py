@@ -1,7 +1,4 @@
-from fastapi import FastAPI
-from app.api.routes import router as api_router
-from app.storage.db import db  # ensures db is loaded early
-
+from flask import Flask, redirect, request, session, jsonify
 
 app = FastAPI()
 
