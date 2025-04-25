@@ -2,7 +2,7 @@
 
 from db import SessionLocal
 from db.models import EmailCache
-from gmail.fetch_emails import email_id_from_url, get_single_email, get_emails_by_query
+from app.gmail.fetch_emails import email_id_from_url, get_single_email, get_emails_by_query
 # from services.jenny_client import summary_for_text, summarize_overall_emails
 from services.settings_service import load_settings
 

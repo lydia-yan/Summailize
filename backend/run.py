@@ -3,5 +3,5 @@ from app import create_app
 app = create_app()
 
 if __name__ == '__main__':
-    # 在开发模式下运行应用
+    # Run the application in development mode
     app.run(debug=True, host='0.0.0.0', port=8000) 

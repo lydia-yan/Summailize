@@ -2,7 +2,13 @@ from flask import Blueprint, request, jsonify, redirect
 import json
 from datetime import datetime
 import logging
+
 from app.auth.oauth_handler import get_authorization_url, handle_oauth_callback
+
+
+from app.storage.db import store_user_settings, get_user_setting, get_overall_summary
+from app.scheduler.task_scheduler import update_user_schedule
+from app.api.time_utils import utc_to_user_timezone
 
 
 # Configure logging
@@ -12,10 +18,9 @@ logger = logging.getLogger(__name__)
 # Create Blueprint
 api = Blueprint('api', __name__, url_prefix='/api')
 
-# Simple in-memory data storage for user settings
-# In a real application, a database should be used
-user_settings = {}
 
+# comment out the OAuth related routes
+"""
 # user authoerize gmail usage
 @api.route("/login")
 def login():
@@ -31,6 +36,7 @@ def get_emails():
     user_email = request.args.get("user_id")
     emails = list_emails(user_email) #replace the function from fetch_email.py
     return jsonify(emails) 
+"""
 
 # summarize
 @api.route('/summarize/per', methods=['POST'])
@@ -43,23 +49,33 @@ def summarize_email():
         data = request.json
         email_url = data.get('emailUrl')
         settings = data.get('userSettings', {})
+        user_id = data.get('userId', 'default_user')
         
         logger.info(f"Received email summary request, URL: {email_url}")
         
-        # Here should add actual email processing logic
-        # For example: call NLP service to analyze email content
+        # use fetch_emails.py to get the email content
+        from app.gmail.fetch_emails import email_id_from_url, get_single_email
         
-        # Example response data
-        # In actual application, this part should be generated based on actual email content
-        email_id = email_url.split('/')[-1] if email_url else 'unknown'
+        # extract the email id from the url
+        email_id = email_id_from_url(email_url)
+        if not email_id:
+            return jsonify({'error': 'Invalid email URL'}), 400
         
-        summary = {
-            'subject': f'Email Subject: {email_id}',
-            'sender': 'sender@example.com',
-            'summary': 'This email discusses the latest project progress and upcoming deadlines. The author mentions several key points: 1) UI upgrades need to be completed next week; 2) New feature testing will begin this Friday; 3) A team meeting needs to be scheduled to discuss implementation details.'
-        }
+        # get the user timezone
+        user_timezone = settings.get('timeZone', 'UTC+08:00')
         
-        return jsonify(summary)
+        # get the email details
+        email_data = get_single_email(email_id, user_timezone)
+        
+        # generate the summary
+        from app.summarizer.azure_agent.ai_agent import per_summarize
+        summarized_result = per_summarize([email_data])[0]
+        
+        # store the summary to the database
+        from app.storage.db import store_per_email_summary
+        store_per_email_summary(user_id, summarized_result)
+        
+        return jsonify(summarized_result)
     
     except Exception as e:
         logger.error(f"Error processing email: {str(e)}")
@@ -72,32 +88,45 @@ def periodic_summary():
     Generate comprehensive summary report based on user settings
     """
     try:
-        # In actual application, here should get recent emails from database and analyze them
+        # Get user ID from request
+        data = request.json
+        user_id = data.get('userId', 'default_user')
         
-        current_time = datetime.now().strftime("%Y/%m/%d %H:%M")
+        # Get user settings for timezone conversion
+        settings = get_user_setting(user_id)
+        user_timezone = settings.get('timeZone', 'UTC+08:00') if settings else 'UTC+08:00'
         
-        # Example summary data
-        # In actual application, this part should be generated based on actual email data
+        # use fetch_emails.py to get the recent emails
+        from app.gmail.fetch_emails import get_emails_by_query
+        
+        # default to get the emails in the recent 3 days
+        query = data.get('query', 'newer_than:3d')
+        max_emails = data.get('maxEmails', 50)
+        
+        # get the emails
+        emails = get_emails_by_query(query, user_timezone, max_total=max_emails)
+        
+        # generate the overall summary
+        from app.summarizer.summary_checker import run_overall_summary
+        success = run_overall_summary(user_id, emails)
+        
+        if not success:
+            return jsonify({'error': 'Failed to generate summary'}), 500
+        
+        # get the latest overall summary
+        summary_data = get_overall_summary(user_id)
+        if not summary_data:
+            return jsonify({'error': 'No summary available'}), 404
+        
+        # convert the UTC timestamp to the user's timezone
+        utc_timestamp = summary_data.get('last_email_timestamp', '')
+        local_timestamp = utc_to_user_timezone(utc_timestamp, user_timezone)
+        
+        # format the response
         summary = {
             'title': 'Periodic Email Summary',
-            'dateTime': current_time,
-            'items': [
-                {
-                    'id': 'summary1',
-                    'category': 'Recruitment Information',
-                    'content': 'This week, you received 15 recruitment-related emails, mainly focusing on software engineering, data analysis and product manager positions. Five of them are from large technology companies.'
-                },
-                {
-                    'id': 'summary2',
-                    'category': 'Subscription Newsletter',
-                    'content': 'Received 3 subscription newsletters, including the latest AI development dynamics and React framework update information.'
-                },
-                {
-                    'id': 'summary3',
-                    'category': 'Important Emails',
-                    'content': 'Received 2 important emails, including a project collaboration invitation and a meeting arrangement confirmation.'
-                }
-            ]
+            'dateTime': local_timestamp,
+            'items': summary_data.get('overall_summary', [])
         }
         
         return jsonify(summary)
@@ -118,8 +147,11 @@ def save_settings():
         
         logger.info(f"Saving user settings, User ID: {user_id}")
         
-        # In a real application, should save settings to database
-        user_settings[user_id] = settings
+        # save the settings to the database
+        store_user_settings(user_id, settings)
+        
+        # update the user's schedule task
+        update_user_schedule(user_id)
         
         return jsonify({
             'success': True,

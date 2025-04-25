@@ -1,4 +1,4 @@
-from backend.app.storage.db import db
+from app.storage.db import db
 
 # Check Firestore connectivity (e.g., try to list collections)
 try:

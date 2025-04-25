@@ -18,17 +18,15 @@ from googleapiclient.discovery import build
 from googleapiclient.errors    import HttpError
 from google.oauth2.credentials import Credentials
 
-from time_utils import internal_ms_to_tz_iso, internal_ms_to_utc_iso
+from .time_utils import internal_ms_to_tz_iso, internal_ms_to_utc_iso
 from dotenv import load_dotenv
 import os
-from dotenv import load_dotenv
-from google.oauth2.credentials import Credentials
 
 load_dotenv()
 
 SCOPES           = ["https://www.googleapis.com/auth/gmail.readonly"]
-CLIENT_SECRET_FP = os.getenv("CLIENT_SECRET_FILE", "client_secret.json")
-TOKEN_FP         = os.getenv("TOKEN_FILE", "token.json")
+CLIENT_SECRET_FP = os.path.join(os.path.dirname(__file__), "client_secret.json")
+TOKEN_FP         = os.path.join(os.path.dirname(__file__), "token.json")
 MAX_PER_PAGE     = 100                   # Gmail list() limit
 
 """

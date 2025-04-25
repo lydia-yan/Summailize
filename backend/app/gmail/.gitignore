@@ -1,6 +1,6 @@
 .env
 token.json
-client_secret*.json
+client_secret.json
 emails.json
 __pycache__/
 *.pyc
