@@ -1,6 +1,12 @@
 # test_storage.py
+import sys
+import os
 
-from backend.app.storage.db import store_per_email_summary, store_overall_summary, get_overall_summary, get_per_email_summary, delete_user_data, store_user_settings, get_user_setting
+# add backend directory to Python path
+# get the parent directory of the current file (backend)
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, backend_dir)
+from app.storage.db import store_per_email_summary, store_overall_summary, get_overall_summary, get_per_email_summary, delete_user_data, store_user_settings, get_user_setting
 
 test_user = "test_user_001"
 

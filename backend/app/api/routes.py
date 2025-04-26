@@ -84,36 +84,19 @@ def summarize_email():
 @api.route('/summarize/overall', methods=['POST'])
 def periodic_summary():
     """
-    Generate periodic email summary
-    Generate comprehensive summary report based on user settings
+    Get the generated email summary
+    Get the existing summary from the database and convert the timestamp
     """
     try:
-        # Get user ID from request
+        # get user ID
         data = request.json
         user_id = data.get('userId', 'default_user')
         
-        # Get user settings for timezone conversion
+        # get user settings for timezone conversion
         settings = get_user_setting(user_id)
         user_timezone = settings.get('timeZone', 'UTC+08:00') if settings else 'UTC+08:00'
         
-        # use fetch_emails.py to get the recent emails
-        from app.gmail.fetch_emails import get_emails_by_query
-        
-        # default to get the emails in the recent 3 days
-        query = data.get('query', 'newer_than:3d')
-        max_emails = data.get('maxEmails', 50)
-        
-        # get the emails
-        emails = get_emails_by_query(query, user_timezone, max_total=max_emails)
-        
-        # generate the overall summary
-        from app.summarizer.summary_checker import run_overall_summary
-        success = run_overall_summary(user_id, emails)
-        
-        if not success:
-            return jsonify({'error': 'Failed to generate summary'}), 500
-        
-        # get the latest overall summary
+        # get the latest summary from the database
         summary_data = get_overall_summary(user_id)
         if not summary_data:
             return jsonify({'error': 'No summary available'}), 404

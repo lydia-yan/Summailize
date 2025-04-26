@@ -124,25 +124,26 @@ class EmailSummaryScheduler:
         """execute the summary task"""
         logger.info(f"start to generate the email summary for user {user_id}")
         try:
-            # 获取用户设置
+            # get the user settings
             from app.storage.db import get_user_setting
             settings = get_user_setting(user_id)
             
             if not settings:
-                logger.error(f"用户 {user_id} 没有设置信息，无法生成邮件摘要")
+                logger.error(f"user {user_id} has no settings, cannot generate the email summary")
                 return
             
-            # 使用Gmail API获取最近邮件
+            # use Gmail API to get the recent emails
             from app.gmail.fetch_emails import get_emails_by_query
             
-            # 获取用户时区
+            # get the user timezone
             time_zone = settings.get("timeZone", "UTC+08:00")
             
-            # 默认查询最近3天的邮件
-            query = "newer_than:3d"
-            emails = get_emails_by_query(query, time_zone, max_total=30)
+            # get the query and max_emails from user settings
+            query = settings.get("emailQueryPeriod", "newer_than:3d")
+            max_emails = settings.get("maxEmailsPerSummary", 30)
+            emails = get_emails_by_query(query, time_zone, max_total=max_emails)
             
-            # 运行摘要任务
+            # run the summary task
             success = run_overall_summary(user_id, emails)
             
             if success:

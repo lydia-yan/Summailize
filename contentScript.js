@@ -70,6 +70,8 @@ function createSidebar() {
   iframe.addEventListener('load', function() {
     setTimeout(() => {
       try {
+        // get the user email and send to iframe
+        getUserEmailAndSend(iframe);
         
         const currentEmailId = getCurrentEmailId();
         if (currentEmailId) {
@@ -85,6 +87,36 @@ function createSidebar() {
   });
   
   return sidebarContainer;
+}
+
+// get the user email and send to iframe
+function getUserEmailAndSend(iframe) {
+  // get the user email from background.js
+  chrome.runtime.sendMessage({ action: 'getUserEmail' }, (response) => {
+    if (response && response.email) {
+      // send the email info to iframe
+      try {
+        iframe.contentWindow.postMessage({
+          type: 'USER_EMAIL',
+          email: response.email
+        }, '*');
+        console.log('user email is sent to iframe:', response.email);
+      } catch (error) {
+        console.error('send email to iframe failed:', error);
+      }
+    } else {
+      console.log('failed to get the user email');
+      try {
+        // even if no email is found, notify iframe to use the default value
+        iframe.contentWindow.postMessage({
+          type: 'USER_EMAIL',
+          email: null
+        }, '*');
+      } catch (error) {
+        console.error('send default email to iframe failed:', error);
+      }
+    }
+  });
 }
 
 // toggle sidebar display status

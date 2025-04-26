@@ -21,6 +21,9 @@ def summarize_text(client, document):
     return results
 
 def format_internal_date(internal_date_ms):
+    if internal_date_ms is None:
+        # return a default value or None
+        return None
     timestamp = int(internal_date_ms) / 1000
     return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S UTC')
 

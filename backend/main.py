@@ -1,16 +1,22 @@
 import sys
 import os
+import atexit  # add atexit module
 
 # add the current directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from flask import Flask
+from flask_cors import CORS
 from app.api.routes import api  # import the Flask Blueprint
 from app.storage.db import db  # ensure the database is loaded early
 from app.scheduler.task_scheduler import start_scheduler, stop_scheduler
 
 
+
 app = Flask(__name__)
+
+# add CORS support, allow Chrome extension to send requests
+CORS(app, resources={r"/api/*": {"origins": ["*", "chrome-extension://bgfhhdhlljldlnmjfpndoeglimej"]}})
 
 # register the API blueprint
 app.register_blueprint(api)
@@ -34,15 +40,22 @@ def init_db_and_scheduler():
 def index():
     return "Email summary API service is running!"
 
+# use atexit to ensure the scheduler is stopped when the application exits
+def cleanup_before_exit():
+    try:
+        stop_scheduler()
+        print("Email summary scheduler stopped on application exit")
+    except Exception as e:
+        print("Error stopping scheduler on exit:", e)
+
+# register the exit handler
+atexit.register(cleanup_before_exit)
+
 # define the cleanup tasks when the application shuts down
 @app.teardown_appcontext
 def shutdown_tasks(exception=None):
-    # stop the email summary scheduler
-    try:
-        stop_scheduler()
-        print("Email summary scheduler stopped")
-    except Exception as e:
-        print("Error stopping scheduler:", e)
+    # remove the scheduler stop code, avoid stopping the scheduler on each request
+    pass
 
 if __name__ == "__main__":
     # initialize the application

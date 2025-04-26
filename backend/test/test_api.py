@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 API_BASE_URL = "http://localhost:8000/api"
 
 # test user ID
-TEST_USER_ID = "test_api_user"
+TEST_USER_ID = "default_user"
 
 # test settings
 TEST_SETTINGS = {

@@ -6,8 +6,8 @@ def create_app():
     """Create and configure Flask application"""
     app = Flask(__name__)
     
-    # Enable CORS, allow all domains
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    # Enable CORS, allow all domains and Chrome extension
+    CORS(app, resources={r"/api/*": {"origins": ["*", "chrome-extension://bgfhhdhlljldlnmjfpndoeglimej"]}})
     
     # Register API blueprint
     app.register_blueprint(api)

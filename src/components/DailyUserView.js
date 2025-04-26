@@ -12,6 +12,17 @@ import { sectionStyles, headerStyles, subtitleStyles, textStyles } from '../styl
 // Get mock data based on language
 const { emailSummary: mockEmailSummary, periodicSummary: mockPeriodicSummary } = mockData.en;
 
+// add a function to get the user email
+const getUserEmail = () => {
+  // prefer localStorage to keep the session consistency
+  const savedEmail = localStorage.getItem('userEmail');
+  console.log('getUserEmail, localStorage email:', savedEmail);
+  if (savedEmail) return savedEmail;
+  
+  console.log('no email is found, use the default value');
+  return "default_user"; // if no email is found, use the default value
+};
+
 /**
  * Send email URL to backend API
  * When a user opens an email, this function is called
@@ -23,12 +34,18 @@ const sendEmailUrlToBackend = async (emailUrl, userSettings) => {
   console.log('Getting email summary, URL:', emailUrl);
   
   try {
+    const userEmail = getUserEmail();
+    
     const response = await fetch('http://localhost:8000/api/summarize/per', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ emailUrl, userSettings })
+      body: JSON.stringify({ 
+        emailUrl, 
+        userSettings,
+        userId: userEmail // add the user email as userId
+      })
     });
     
     if (!response.ok) {
@@ -49,6 +66,9 @@ const sendEmailUrlToBackend = async (emailUrl, userSettings) => {
 const fetchPeriodicSummary = async () => {
   try {
     console.log('get periodic summary');
+    
+    const userEmail = getUserEmail();
+    console.log('Using user email:', userEmail);
 
     // call the actual API
     const response = await fetch('http://localhost:8000/api/summarize/overall', {
@@ -56,8 +76,8 @@ const fetchPeriodicSummary = async () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      // do not pass the markAsRead parameter
-      body: JSON.stringify({})
+      // use the user email as userId
+      body: JSON.stringify({userId: userEmail})
     });
     
     // check the response status
@@ -160,6 +180,41 @@ const DailyUserView = ({ onReturnToSettings }) => {
   const updateState = useCallback((updates) => {
     Object.assign(stateRef.current, updates);
     setUiState({...stateRef.current});
+  }, []);
+  
+  // add email listener, receive email info from contentScript
+  useEffect(() => {
+    function handleEmailMessage(event) {
+      if (event.data && event.data.type === 'USER_EMAIL') {
+        const email = event.data.email;
+        if (email) {
+          console.log('after receiving the email info, fetch the data');
+          localStorage.setItem('userEmail', email);
+          
+          // after receiving the email info, immediately fetch the data
+          fetchPeriodicSummary()
+            .then(summary => {
+              if (summary) {
+                updateState({
+                  phaseSummary: summary,
+                  summaryDateTime: summary.dateTime || '',
+                  isPhaseVisible: true,
+                  emailProcessingError: null
+                });
+              }
+            })
+            .catch(error => {
+              console.error('after receiving the email info, fetch the data failed:', error);
+            });
+        }
+      }
+    }
+    
+    window.addEventListener('message', handleEmailMessage);
+    
+    return () => {
+      window.removeEventListener('message', handleEmailMessage);
+    };
   }, []);
   
   // the function to handle the messages
@@ -319,14 +374,14 @@ const DailyUserView = ({ onReturnToSettings }) => {
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <IconButton
                 iconProps={{ iconName: uiState.isPhaseCollapsed ? 'ChevronDown' : 'ChevronUp' }}
-                title={uiState.isPhaseCollapsed ? "展开" : "收起"}
+                title={uiState.isPhaseCollapsed ? "Expand summary" : "Collapse summary"}
                 ariaLabel={uiState.isPhaseCollapsed ? "Expand summary" : "Collapse summary"}
                 onClick={handleTogglePhaseSummary}
                 styles={{ root: { marginRight: '4px' } }}
               />
               <IconButton
                 iconProps={{ iconName: 'Cancel' }}
-                title="关闭"
+                title="Close summary"
                 ariaLabel="Close summary"
                 onClick={handleClosePhaseSummary}
               />
@@ -342,7 +397,8 @@ const DailyUserView = ({ onReturnToSettings }) => {
               {uiState.phaseSummary.items.map(item => (
                 <div key={item.id} style={{ marginBottom: '12px' }}>
                   <Text variant="mediumPlus" className={textStyles.category}>{item.category}</Text>
-                  <Text className={textStyles.content}>{item.content}</Text>
+                  <Text className={textStyles.content}>{item.summary_bullets}</Text>
+                  <Text className={textStyles.content}>{item.attachments}</Text>
                 </div>
               ))}
             </div>

@@ -1,5 +1,13 @@
-from backend.app.summarizer.summary_checker import run_overall_summary, run_per_email_summary
-from backend.app.storage.db import (
+import sys
+import os
+
+# add backend directory to Python path
+# get the parent directory of the current file (backend)
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, backend_dir)
+
+from app.summarizer.summary_checker import run_overall_summary, run_per_email_summary
+from app.storage.db import (
     get_overall_summary,
     delete_user_data,
     get_all_per_email_summaries
@@ -13,7 +21,7 @@ new_email_data = [
     {
         "id": "msg-001",
         "subject": "🧠 AI Ethics Workshop Reminder",
-        "body": "Dear team,\n\nReminder: our AI Ethics workshop starts at 10am in Room 204. Don’t forget to bring your slides if you’re presenting.\n\nSee you there!\n\nBest,\nDr. Lin",
+        "body": "Dear team,\n\nReminder: our AI Ethics workshop starts at 10am in Room 204. Don't forget to bring your slides if you're presenting.\n\nSee you there!\n\nBest,\nDr. Lin",
         "attachment_names": [],
         "from": {
             "display_name": "Dr. Lin",
@@ -24,7 +32,7 @@ new_email_data = [
     {
         "id": "msg-002",
         "subject": "📢 Invitation to NLP Global Summit",
-        "body": "Hi Jenny,\n\nYou’re invited to the NLP Global Summit on April 12, featuring speakers from OpenAI, Google, and Microsoft. Don’t miss out!\n\nRegister at: https://nlpsummit.com/register",
+        "body": "Hi Jenny,\n\nYou're invited to the NLP Global Summit on April 12, featuring speakers from OpenAI, Google, and Microsoft. Don't miss out!\n\nRegister at: https://nlpsummit.com/register",
         "attachment_names": ["NLP_Summit_Brochure.pdf"],
         "from": {
             "display_name": "Conference Team",
@@ -35,7 +43,7 @@ new_email_data = [
     {
         "id": "msg-003",
         "subject": "📊 April Budget Report",
-        "body": "Hi team,\n\nAttached is the April budget report. Please review before Friday’s finance meeting.\n\nThanks,\nFinance Dept.",
+        "body": "Hi team,\n\nAttached is the April budget report. Please review before Friday's finance meeting.\n\nThanks,\nFinance Dept.",
         "attachment_names": ["April_Budget_Report.xlsx"],
         "from": {
             "display_name": "Finance Dept.",
@@ -112,5 +120,12 @@ def test_per_email_and_overall_summary():
     assert isinstance(overall["overall_summary"], list), "❌ overall_summary not a list"
     print("✅ Overall summary OK")
 
+def test_add_to_default_user():
+    user_id = ""  # CHANGE THIS TO THE USER EMAIL   
+    # use the same email data as the test
+    result = run_overall_summary(user_id, new_email_data)
+    print(f"result of adding to default_user: {result}")
+    print(get_overall_summary(user_id))
+
 if __name__ == "__main__":
-    test_per_email_and_overall_summary()
+    test_add_to_default_user()  # run this instead of the original test

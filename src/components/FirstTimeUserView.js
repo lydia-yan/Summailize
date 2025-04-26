@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Text, 
   Stack, 
@@ -54,6 +54,17 @@ const times = [
   { key: '6:00 PM', text: '6:00 PM' },
 ];
 
+// add a function to get the user email
+const getUserEmail = () => {
+  // prefer localStorage to keep the session consistency
+  const savedEmail = localStorage.getItem('userEmail');
+  console.log('FirstTimeUserView, check the localStorage email:', savedEmail);
+  if (savedEmail) return savedEmail;
+  
+  console.log('FirstTimeUserView, no email is found, use the default value');
+  return "default_user"; // if no email is found, use the default value
+};
+
 /**
  * Send user settings to backend
  * @param {object} settings - user settings
@@ -82,10 +93,36 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState('UTC+08:00');
   const [selectedWeekdays, setSelectedWeekdays] = useState(['monday', 'wednesday', 'friday']);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // add email listener, receive email info from contentScript
+  useEffect(() => {
+    function handleEmailMessage(event) {
+      if (event.data && event.data.type === 'USER_EMAIL') {
+        const email = event.data.email;
+        if (email) {
+          console.log('FirstTimeUserView, receive the email:', email);
+          // save the email to localStorage
+          localStorage.setItem('userEmail', email);
+          // force the component to re-render to update the display
+          setIsSaving(false); // use a existing state to trigger the re-render
+        }
+      }
+    }
+    
+    window.addEventListener('message', handleEmailMessage);
+    
+    return () => {
+      window.removeEventListener('message', handleEmailMessage);
+    };
+  }, []);
 
   const handleSaveSettings = async () => {
     try {
       setIsSaving(true);
+      
+      // get the user email
+      const userEmail = getUserEmail();
+      console.log('FirstTimeUserView, save the settings using the email:', userEmail);
       
       // create user settings object, keep the original format
       const settings = {
@@ -93,6 +130,7 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
         weekendTime: weekendTime,
         timeZone: selectedTimeZone,
         weekdays: selectedWeekdays,
+        userId: userEmail // add the user email as userId
       };
 
       // save to local storage
@@ -131,7 +169,7 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
     setWeekendTime(option.key);
   };
 
-  // 自定义按钮样式
+  // custom button styles
   const customButtonStyles = {
     root: {
       backgroundColor: '#0b57d0',
@@ -149,7 +187,7 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
     }
   };
   
-  // 自定义下拉框样式
+  // custom dropdown styles
   const dropdownStyles = {
     dropdown: { 
       width: '100%',

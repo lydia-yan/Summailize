@@ -6,13 +6,35 @@ import './styles/App.css';
 function App() {
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState(null);
 
   useEffect(() => {
+    // add message listener, receive the email from Chrome extension
+    function handleMessage(event) {
+      if (event.data && event.data.type === 'USER_EMAIL') {
+        const email = event.data.email;
+        if (email) {
+          console.log('App component, receive the email:', email);
+          localStorage.setItem('userEmail', email);
+          setUserEmail(email);
+        }
+      }
+    }
+    
+    window.addEventListener('message', handleMessage);
+    
     // Check if the user is a first-time user
     const checkFirstTimeUser = async () => {
       try {
         setTimeout(() => {
           const userSettings = localStorage.getItem('emailSummarySettings');
+          // try to get the email from localStorage
+          const savedEmail = localStorage.getItem('userEmail');
+          if (savedEmail) {
+            console.log('App component, get the email from localStorage:', savedEmail);
+            setUserEmail(savedEmail);
+          }
+          
           setIsFirstTimeUser(!userSettings);
           setLoading(false);
         }, 1000);
@@ -23,6 +45,10 @@ function App() {
     };
 
     checkFirstTimeUser();
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
   }, []);
 
   const saveUserSettings = async (settings) => {

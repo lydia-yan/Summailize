@@ -35,7 +35,9 @@
   "permissions": [
     "storage",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "identity",
+    "identity.email"
   ],
   "web_accessible_resources": [
     {
