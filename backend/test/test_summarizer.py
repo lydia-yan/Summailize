@@ -121,7 +121,7 @@ def test_per_email_and_overall_summary():
     print("✅ Overall summary OK")
 
 def test_add_to_default_user():
-    user_id = ""  # CHANGE THIS TO THE USER EMAIL   
+    user_id = "jennyc28@uci.edu"  # CHANGE THIS TO THE USER EMAIL   
     # use the same email data as the test
     result = run_overall_summary(user_id, new_email_data)
     print(f"result of adding to default_user: {result}")
