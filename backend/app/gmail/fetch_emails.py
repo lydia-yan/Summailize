@@ -16,7 +16,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2.credentials import Credentials
-from dotenv import load_dotenv
+from app.storage.db import get_tokens, save_tokens
+from app.gmail.config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+from google.auth.transport.requests import Request
+
+MAX_PER_PAGE= 100  # Gmail list() limit
 
 # ─── OAuth helper ────────────────────────────────────────────────────────────
 def get_gmail_service(user_id: str):
@@ -24,17 +28,23 @@ def get_gmail_service(user_id: str):
     Return an authenticated Gmail service for *this* user.
     Tokens are loaded / saved in .tokens/<user_id>.json
     """
-    creds = load_tokens(user_id, SCOPES)
+    token_data = get_tokens(user_id)
+    if not token_data:
+        raise Exception("No token data found. User not logged in.")
 
-    if creds is None or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow   = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FP, SCOPES)
-            creds  = flow.run_local_server(port=0)
-        save_tokens(user_id, creds)                         # ▲▲ NEW
+    creds = Credentials(
+        token=token_data['access_token'],
+        refresh_token=token_data['refresh_token'],
+        token_uri='https://oauth2.googleapis.com/token',
+        client_id=GOOGLE_CLIENT_ID,
+        client_secret=GOOGLE_CLIENT_SECRET
+    )
 
-    return build("gmail", "v1", credentials=creds)
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+        save_tokens(user_id, creds.token, creds.refresh_token, creds.expiry.isoformat())
+
+    return build('gmail', 'v1', credentials=creds)
 
 # ─── Internal helpers ────────────────────────────────────────────────────────
 def _decode_body(encoded: str) -> str:
@@ -105,8 +115,7 @@ def get_emails_by_query(gmail_query: str,
                           .messages()
                           .list(userId="me",
                                 q=gmail_query,
-                                maxResults=min(MAX_PER_PAGE,
-                                               max_total - len(collected)),
+                                 maxResults=min(MAX_PER_PAGE, max_total - len(collected)),
                                 pageToken=page_token)
                           .execute())
 

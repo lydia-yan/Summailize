@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, redirect
+from flask import Blueprint, request, jsonify, redirect, url_for
 import json
 from datetime import datetime
 import logging
@@ -20,7 +20,6 @@ api = Blueprint('api', __name__, url_prefix='/api')
 
 
 # comment out the OAuth related routes
-"""
 # user authoerize gmail usage
 @api.route("/login")
 def login():
@@ -29,14 +28,33 @@ def login():
 @api.route("/oauth2callback")
 def oauth2callback():
     user_email = handle_oauth_callback()
-    return redirect(f"/connected?email={user_email}")
+    return redirect(url_for('api.connected', email=user_email))
 
-@api.route("/get-emails")
-def get_emails():
-    user_email = request.args.get("user_id")
-    emails = list_emails(user_email) #replace the function from fetch_email.py
-    return jsonify(emails) 
-"""
+@api.route("/connected")
+def connected():
+    email = request.args.get("email", "Unknown Email")
+    return f"""
+    <html>
+        <head>
+            <title>Connected</title>
+            <script>
+                window.onload = function() {{
+                    alert("✅ Connected successfully as {email}!");
+                    if (window.opener) {{
+                        window.opener.postMessage({{
+                            type: "oauth_success",
+                            email: "{email}"
+                        }}, "*");
+                    }}
+                    window.close();
+                }};
+            </script>
+        </head>
+        <body>
+            <p>Connected successfully. You can close this window.</p>
+        </body>
+    </html>
+    """
 
 # summarize
 @api.route('/summarize/per', methods=['POST'])

@@ -1,6 +1,8 @@
 import sys
 import os
 import atexit  # add atexit module
+from dotenv import load_dotenv
+
 
 # add the current directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -11,9 +13,13 @@ from app.api.routes import api  # import the Flask Blueprint
 from app.storage.db import db  # ensure the database is loaded early
 from app.scheduler.task_scheduler import start_scheduler, stop_scheduler
 
+load_dotenv()
 
 
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1" # 開發環境暫時允許 HTTP（推薦開發用）
+
 
 # add CORS support, allow Chrome extension to send requests
 CORS(app, resources={r"/api/*": {"origins": ["*", "chrome-extension://bgfhhdhlljldlnmjfpndoeglimej"]}})
