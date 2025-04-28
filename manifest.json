@@ -27,6 +27,10 @@
       "matches": ["*://mail.google.com/*"],
       "js": ["contentScript.js"],
       "css": ["contentStyle.css"]
+    },
+    {
+      "matches": ["*://mail.google.com/*"],
+      "js": ["email-handler.js"]
     }
   ],
   "host_permissions": [

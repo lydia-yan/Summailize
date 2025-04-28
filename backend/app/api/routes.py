@@ -65,36 +65,36 @@ def summarize_email():
     """
     try:
         data = request.json
-        email_url = data.get('emailUrl')
-        settings = data.get('userSettings', {})
-        user_id = data.get('userId', 'default_user')
+        subject = data.get('subject')
+        sender = data.get('sender')
+        received_date = data.get('received_date')
+        user_id = data.get('user_id')
         
-        logger.info(f"Received email summary request, URL: {email_url}")
+        if not all([subject, sender, received_date, user_id]):
+            return jsonify({"error": "Missing subject, sender, received_date, or user_id"}), 400
+
+        logger.info(f"Received per email summary request, JSON data: {data}")
         
         # use fetch_emails.py to get the email content
-        from app.gmail.fetch_emails import email_id_from_url, get_single_email
-        
+        from app.gmail.fetch_emails import _build_query, get_emails_by_query
+        gmail_query = _build_query(subject, sender, received_date)
+
         # extract the email id from the url
-        email_id = email_id_from_url(email_url)
-        if not email_id:
-            return jsonify({'error': 'Invalid email URL'}), 400
+        # Fetch emails (only one)
+        emails = get_emails_by_query(gmail_query=gmail_query, user_id=user_id, max_total=1)
+
+        if not emails:
+            return jsonify({"error": "No matching email found."}), 404
         
-        # get the user timezone
-        user_timezone = settings.get('timeZone', 'UTC+08:00')
         
         # get the email details
-        email_data = get_single_email(email_id, user_timezone)
-        
-        # generate the summary
-        from app.summarizer.azure_agent.ai_agent import per_summarize
-        summarized_result = per_summarize([email_data])[0]
+        from app.summarizer.summary_checker import run_per_email_summary
+        run_per_email_summary(user_id, emails)
         
         # store the summary to the database
-        from app.storage.db import store_per_email_summary
-        store_per_email_summary(user_id, summarized_result)
+        from app.storage.db import get_per_email_summary
         
-        return jsonify(summarized_result)
-    
+        return jsonify(get_per_email_summary(user_id,emails[0]["id"]))
     except Exception as e:
         logger.error(f"Error processing email: {str(e)}")
         return jsonify({'error': str(e)}), 500

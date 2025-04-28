@@ -30,35 +30,52 @@ const getUserEmail = () => {
  * @param {object} userSettings - User settings
  * @returns {Promise<object>} Returns API response
  */
-const sendEmailUrlToBackend = async (emailUrl, userSettings) => {
-  console.log('Getting email summary, URL:', emailUrl);
+/** 
+const sendEmailUrlToBackend = async () => {
+  const emailInfo = grabEmailInfo();
+  console.log('Getting email summary, JSON data:', emailInfo);
+
+  // Quick validation
+  if (!emailInfo.subject || !emailInfo.sender || !emailInfo.received_date) {
+    console.error("❌ Missing required fields. Maybe the email is not fully loaded yet.");
+    return;
+  }
   
   try {
-    const userEmail = getUserEmail();
+    const userId = getUserEmail();
+
+    const requestBody = {
+      subject: emailInfo.subject,
+      sender: emailInfo.sender,
+      received_date: emailInfo.received_date,
+      user_id: userId
+    };
     
+    console.log('Sending request body ...');
     const response = await fetch('http://localhost:8000/api/summarize/per', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        emailUrl, 
-        userSettings,
-        userId: userEmail // add the user email as userId
-      })
+      body: JSON.stringify(requestBody)
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Got Email summary result:', data);
+    })
+    .catch(error => {
+      console.error('Failed to send email info:', error);
     });
-    
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    
-    return await response.json();
   } catch (error) {
     console.error('API call failed:', error);
     throw error;
   }
 };
-
+*/
 /**
  * get periodic email summary
  * @returns {Promise<object>} return periodic summary data
@@ -232,24 +249,18 @@ const DailyUserView = ({ onReturnToSettings }) => {
     setUiState({...stateRef.current});
     
     // get the email summary
-    const emailUrl = `https://mail.google.com/mail/u/0/#inbox/${emailId}`;
-    sendEmailUrlToBackend(emailUrl, stateRef.current.userSettings)
-      .then(summary => {
-        Object.assign(stateRef.current, {
-          currentEmailSummary: summary,
-          loading: false,
-          emailProcessingError: null
-        });
-        setUiState({...stateRef.current});
-      })
-      .catch(error => {
-        console.error('process email failed:', error);
-        Object.assign(stateRef.current, {
-          loading: false,
-          emailProcessingError: 'process email failed: ' + error.message
-        });
-        setUiState({...stateRef.current});
-      });
+    // const emailUrl = `https://mail.google.com/mail/u/0/#inbox/${emailId}`;
+    console.log('📤 Sending TRIGGER_SEND_EMAIL to parent window');
+    // Send to parent window (Gmail page)
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'TRIGGER_SEND_EMAIL' }, 'https://mail.google.com');
+    } else {
+        console.log('⚠️ No parent window, sending to self');
+        window.postMessage({ 
+          type: 'TRIGGER_SEND_EMAIL'
+        }, window.location.origin);
+    }
+
   }, []);
   
   // only set the message listener once when the component is mounted
@@ -466,5 +477,6 @@ const DailyUserView = ({ onReturnToSettings }) => {
     </Stack>
   );
 };
+
 
 export default DailyUserView; 

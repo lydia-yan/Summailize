@@ -47,7 +47,8 @@ module.exports = {
         { from: 'public/assets', to: 'assets' },
         { from: 'src/styles/contentStyle.css', to: '.' },
         { from: 'public/iframe-messaging.js', to: '.' },
-        { from: 'public/main.js', to: '.' }
+        { from: 'public/main.js', to: '.' },
+        { from: 'email-handler.js', to: 'email-handler.js' },
       ],
     }),
   ],
