@@ -91,7 +91,7 @@ const FirstTimeUserView = ({ onSaveSettings }) => {
   const [weekdayTime, setWeekdayTime] = useState('9:00 AM');
   const [weekendTime, setWeekendTime] = useState('11:00 AM');
   const [selectedTimeZone, setSelectedTimeZone] = useState('UTC+08:00');
-  const [selectedWeekdays, setSelectedWeekdays] = useState(['monday', 'wednesday', 'friday']);
+  const [selectedWeekdays, setSelectedWeekdays] = useState(['monday', 'tuesday', 'wednesday', 'thursday', 'friday']);
   const [isSaving, setIsSaving] = useState(false);
   
   // add email listener, receive email info from contentScript

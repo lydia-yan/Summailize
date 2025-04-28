@@ -6,7 +6,7 @@ import logging
 from app.auth.oauth_handler import get_authorization_url, handle_oauth_callback
 
 
-from app.storage.db import store_user_settings, get_user_setting, get_overall_summary
+from app.storage.db import store_user_settings, get_user_setting, get_overall_summary, get_tokens
 from app.scheduler.task_scheduler import update_user_schedule
 from app.api.time_utils import utc_to_user_timezone
 
@@ -163,3 +163,11 @@ def save_settings():
     except Exception as e:
         logger.error(f"Error saving settings: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+# test the scheduler
+@api.route('/test/trigger/<user_id>', methods=['GET'])
+def trigger_task(user_id):
+    from app.scheduler.task_scheduler import scheduler
+    scheduler._execute_summary_task(user_id)
+    return jsonify({"message": f"Triggered summary task for user {user_id}"})
+

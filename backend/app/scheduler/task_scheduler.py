@@ -8,6 +8,7 @@ import schedule
 import logging
 from datetime import datetime, timedelta
 import pytz
+import os
 
 from app.storage.db import get_user_setting, get_all_users
 from app.api.time_utils import get_trigger_time
@@ -53,6 +54,11 @@ class EmailSummaryScheduler:
     
     def _run_scheduler(self):
         """run the scheduler main loop"""
+        # 强制设置环境变量为UTC时区
+        os.environ['TZ'] = 'UTC'
+        time.tzset()  # 应用时区变更
+        logger.info("Forced timezone to UTC for scheduler")
+        
         while self.is_running:
             schedule.run_pending()
             time.sleep(1)
@@ -69,7 +75,8 @@ class EmailSummaryScheduler:
         """update the task scheduler for a single user"""
         # clear the existing tasks
         if user_id in self.jobs:
-            schedule.cancel_job(self.jobs[user_id])
+            for job in self.jobs[user_id]:
+                schedule.cancel_job(job)
             del self.jobs[user_id]
         
         # get the user settings
@@ -110,15 +117,20 @@ class EmailSummaryScheduler:
             "saturday": schedule.every().saturday,
             "sunday": schedule.every().sunday
         }
-        
+
+        # initialize the user's task list (if not exists)
+        if user_id not in self.jobs:
+           self.jobs[user_id] = []
+           
         for day in days:
-            if day in day_mapping:
-                job = day_mapping[day].at(trigger_time).do(
-                    self._execute_summary_task, user_id=user_id
-                )
-                self.jobs[user_id] = job
-                
-                logger.info(f"set the summary task for user {user_id} at {day} {trigger_time}(UTC)")
+           if day in day_mapping:
+               job = day_mapping[day].at(trigger_time).do(
+                   self._execute_summary_task, user_id=user_id
+               )
+               self.jobs[user_id].append(job)
+               
+               logger.info(f"set the summary task for user {user_id} at {day} {trigger_time}(UTC)")
+        
     
     def _execute_summary_task(self, user_id):
         """execute the summary task"""
@@ -139,9 +151,9 @@ class EmailSummaryScheduler:
             time_zone = settings.get("timeZone", "UTC+08:00")
             
             # get the query and max_emails from user settings
-            query = settings.get("emailQueryPeriod", "newer_than:3d")
+            query = settings.get("emailQueryPeriod", "newer_than:1d")
             max_emails = settings.get("maxEmailsPerSummary", 30)
-            emails = get_emails_by_query(query, time_zone, max_total=max_emails)
+            emails = get_emails_by_query(query, user_id, max_total=max_emails)
             
             # run the summary task
             success = run_overall_summary(user_id, emails)
