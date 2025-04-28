@@ -14,11 +14,11 @@ const timeZones = [
   { key: 'UTC-11:00', text: '(UTC-11:00) Coordinated Universal Time-11' },
   { key: 'UTC-10:00', text: '(UTC-10:00) Hawaii' },
   { key: 'UTC-09:00', text: '(UTC-09:00) Alaska' },
-  { key: 'UTC-08:00', text: '(UTC-08:00) Pacific Time (US & Canada)' },
-  { key: 'UTC-07:00', text: '(UTC-07:00) Mountain Time (US & Canada)' },
-  { key: 'UTC-06:00', text: '(UTC-06:00) Central Time (US & Canada)' },
-  { key: 'UTC-05:00', text: '(UTC-05:00) Eastern Time (US & Canada)' },
-  { key: 'UTC-04:00', text: '(UTC-04:00) Atlantic Time (Canada)' },
+  { key: 'UTC-07:00', text: '(UTC-07:00) Pacific Time (US & Canada)' },
+  { key: 'UTC-06:00', text: '(UTC-06:00) Mountain Time (US & Canada)' },
+  { key: 'UTC-05:00', text: '(UTC-05:00) Central Time (US & Canada)' },
+  { key: 'UTC-04:00', text: '(UTC-04:00) Eastern Time (US & Canada)' },
+  { key: 'UTC-03:30', text: '(UTC-03:30) Atlantic Time (Canada)' },
   { key: 'UTC-03:00', text: '(UTC-03:00) Brasilia' },
   { key: 'UTC-02:00', text: '(UTC-02:00) Coordinated Universal Time-02' },
   { key: 'UTC-01:00', text: '(UTC-01:00) Azores' },
@@ -90,9 +90,42 @@ const sendSettingsToBackend = async (settings) => {
 const FirstTimeUserView = ({ onSaveSettings }) => {
   const [weekdayTime, setWeekdayTime] = useState('9:00 AM');
   const [weekendTime, setWeekendTime] = useState('11:00 AM');
-  const [selectedTimeZone, setSelectedTimeZone] = useState('UTC+08:00');
+  const [selectedTimeZone, setSelectedTimeZone] = useState('UTC+00:00');  // default use UTC
   const [selectedWeekdays, setSelectedWeekdays] = useState(['monday', 'tuesday', 'wednesday', 'thursday', 'friday']);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // auto detect the timezone
+  useEffect(() => {
+    // try to get the saved timezone from localStorage
+    const savedSettings = localStorage.getItem('emailSummarySettings');
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        if (settings.timeZone) {
+          setSelectedTimeZone(settings.timeZone);
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to parse saved settings:', e);
+      }
+    }
+    
+    // if no saved settings, try to auto detect the timezone
+    try {
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const offset = new Date().getTimezoneOffset();
+      const hours = Math.abs(Math.floor(offset / 60));
+      const minutes = Math.abs(offset % 60);
+      const sign = offset <= 0 ? '+' : '-';
+      const timezoneStr = `UTC${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      
+      // find the closest timezone in the list
+      const closestTimezone = timeZones.find(tz => tz.key === timezoneStr) || timeZones[0];
+      setSelectedTimeZone(closestTimezone.key);
+    } catch (e) {
+      console.error('Failed to detect timezone:', e);
+    }
+  }, []);
   
   // add email listener, receive email info from contentScript
   useEffect(() => {

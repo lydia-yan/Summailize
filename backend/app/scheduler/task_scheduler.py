@@ -54,9 +54,9 @@ class EmailSummaryScheduler:
     
     def _run_scheduler(self):
         """run the scheduler main loop"""
-        # 强制设置环境变量为UTC时区
+        # force the environment variable to UTC
         os.environ['TZ'] = 'UTC'
-        time.tzset()  # 应用时区变更
+        time.tzset()  # apply the timezone change
         logger.info("Forced timezone to UTC for scheduler")
         
         while self.is_running:
