@@ -3,21 +3,11 @@
 import os
 from dotenv import load_dotenv
 from google.cloud import firestore
-
-# Load variables from .env
-dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.env')
-load_dotenv(dotenv_path)
-
-# fix GOOGLE_APPLICATION_CREDENTIALS to be absoulute path
-if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
-    google_cred = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    if not os.path.isabs(google_cred):
-        abs_cred = os.path.abspath(os.path.join(os.path.dirname(dotenv_path), google_cred))
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = abs_cred
+from app.config import GOOGLE_APPLICATION_CREDENTIALS
 
 
 # Get the path to your JSON key file
-cred_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+cred_path = GOOGLE_APPLICATION_CREDENTIALS
 
 if not cred_path:
     raise RuntimeError("Missing GOOGLE_APPLICATION_CREDENTIALS in .env")

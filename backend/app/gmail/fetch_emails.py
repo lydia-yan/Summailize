@@ -18,7 +18,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from google.oauth2.credentials import Credentials
 from app.storage.db import get_tokens, save_tokens
-from app.gmail.config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+from app.config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 from google.auth.transport.requests import Request
 
 MAX_PER_PAGE= 100  # Gmail list() limit
@@ -137,14 +137,3 @@ def get_emails_by_query(gmail_query: str,
         print("⚠️ Gmail API error:", e)
 
     return collected
-
-# ─── CLI test ────────────────────────────────────────────────────────────────
-if __name__ == "__main__":
-    USER = "nico123"                                       # example user_id
-    batch = get_emails_by_query("newer_than:3d",
-                                user_id=USER, max_total=10)
-
-    print(f"✅ Fetched {len(batch)} emails for {USER}")
-    with open("emails.json", "w", encoding="utf-8") as fp:
-        json.dump(batch, fp, ensure_ascii=False, indent=2)
-    print("✅ Saved → emails.json")
