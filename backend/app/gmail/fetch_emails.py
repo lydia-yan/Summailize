@@ -11,6 +11,7 @@ get_emails_by_query(gmail_query, max_total=50) -> list[dict]
 from __future__ import annotations
 import base64, html, pathlib, json, os
 from typing import Dict, List
+from datetime import datetime, timedelta
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -99,6 +100,13 @@ def _build_email_dict(service, msg_id: str) -> Dict:
         },
         "internalDate": internal_date
     }
+
+def _build_query(subject: str, sender: str, received_date: str) -> str:
+    after_date = (datetime.strptime(received_date, "%Y-%m-%d") - timedelta(days=1)).strftime("%Y/%m/%d")
+    before_date = (datetime.strptime(received_date, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y/%m/%d")
+    
+    query = f'subject:"{subject}" from:{sender} after:{after_date} before:{before_date}'
+    return query
 
 # ─── Public API ──────────────────────────────────────────────────────────────
 def get_emails_by_query(gmail_query: str,
