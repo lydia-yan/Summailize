@@ -41,7 +41,7 @@ window.sendEmailUrlToBackend = async () => {
         subject: emailInfo.subject,
         sender: emailInfo.sender,
         received_date: emailInfo.received_date,
-        user_id: emailInfo.receiver
+        user_id: String(emailInfo.receiver).toLowerCase()
     };
 
     console.log('Sending request body ...', requestBody);
