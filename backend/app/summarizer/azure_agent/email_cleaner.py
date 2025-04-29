@@ -3,8 +3,14 @@ import re
 from datetime import datetime
 from azure.ai.textanalytics import TextAnalyticsClient
 from azure.core.credentials import AzureKeyCredential
-from app.summarizer.azure_agent.config import AZURE_LANGUAGE_KEY , AZURE_LANGUAGE_ENDPOINT
+from bs4 import BeautifulSoup
+from app.config import AZURE_LANGUAGE_KEY , AZURE_LANGUAGE_ENDPOINT
 
+# Rule-based cleaning 
+removed = [
+    r'[^.]*unsubscribe[^.]*\.?', #any sentence that includes the word "unsubscribe"
+    r'[^.]*your email software can\'t display.*' # strip notice about HTML emails
+]
 
 def clean_email_body(text):
     # Remove signature and common greetings/closings
@@ -30,6 +36,17 @@ def format_internal_date(internal_date_ms):
 def chunk_documents(documents, size=25):
     for i in range(0, len(documents), size):
         yield documents[i:i + size]
+
+def summary_cleaner(text):
+    if bool(re.search(r"<[^>]+>", text)):
+        # Looks like HTML, use BeautifulSoup to clean
+        soup = BeautifulSoup(text, "html.parser")
+        text = soup.get_text(separator=" ", strip=True)
+    text = re.sub(r'\(\s*https?[^)]*\)', '', text)
+    text = re.sub(' +', ' ', text)  # remove double spaces
+    for pattern in removed:
+        text = re.sub(pattern, '', text)
+    return text
 
 def summarize_emails(emails):
     """
@@ -77,7 +94,7 @@ def summarize_emails(emails):
         for i, res in enumerate(result_chunk):
             meta = email_meta[i]
             if not res.is_error:
-                summary = " ".join([sentence.text for sentence in res.sentences])
+                summary =summary_cleaner(" ".join([sentence.text for sentence in res.sentences]))
             else:
                 summary = "[ERROR] Could not summarize."
 
