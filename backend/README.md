@@ -50,7 +50,7 @@ Put the below files in `crededntials` folder in the `backend` folder:
 You can find how to create the above keys in there files:
 - [Azure OpenAI and Language keys](./app/summarizer/azure_agent/README.md)
 - [FireBase Database Key](./app/storage/README.md)
-- [Gmail API Key]()
+- [Gmail API Key](./app/gmail/README.md)
 
 ## How to Run
 1. Run the Backend API Server (FastAPI)
