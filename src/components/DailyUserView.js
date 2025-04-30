@@ -238,30 +238,47 @@ const DailyUserView = ({ onReturnToSettings }) => {
   const handleMessage = useCallback((event) => {
     const messageData = event instanceof CustomEvent ? event.detail : event.data;
     
-    // check the message type and emailId
-    if (messageData?.type !== 'CURRENT_EMAIL' || !messageData?.emailId) return;
+    console.log('receive message:', messageData?.type);
     
-    const emailId = messageData.emailId;
-    if (emailId === stateRef.current.lastHandledEmailId) return;
-    
-    stateRef.current.lastHandledEmailId = emailId;
-    stateRef.current.loading = true;
-    setUiState({...stateRef.current});
-    
-    // get the email summary
-    // const emailUrl = `https://mail.google.com/mail/u/0/#inbox/${emailId}`;
-    console.log('📤 Sending TRIGGER_SEND_EMAIL to parent window');
-    // Send to parent window (Gmail page)
-    if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: 'TRIGGER_SEND_EMAIL' }, 'https://mail.google.com');
-    } else {
-        console.log('⚠️ No parent window, sending to self');
-        window.postMessage({ 
-          type: 'TRIGGER_SEND_EMAIL'
-        }, window.location.origin);
+    // handle the CURRENT_EMAIL type message
+    if (messageData?.type === 'CURRENT_EMAIL' && messageData?.emailId) {
+      const emailId = messageData.emailId;
+      if (emailId === stateRef.current.lastHandledEmailId) return;
+      
+      stateRef.current.lastHandledEmailId = emailId;
+      stateRef.current.loading = true;
+      setUiState({...stateRef.current});
+      
+      console.log('📤 Sending TRIGGER_SEND_EMAIL to parent window');
+      // Send to parent window (Gmail page)
+      if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: 'TRIGGER_SEND_EMAIL' }, 'https://mail.google.com');
+      } else {
+          console.log('⚠️ No parent window, sending to self');
+          window.postMessage({ 
+            type: 'TRIGGER_SEND_EMAIL'
+          }, window.location.origin);
+      }
     }
+    // handle the EMAIL_SUMMARY_RESPONSE type message
+    else if (messageData?.type === 'EMAIL_SUMMARY_RESPONSE' && messageData?.data) {
+      console.log('📩 receive EMAIL_SUMMARY_RESPONSE:', messageData.data);
+      updateState({
+        currentEmailSummary: messageData.data,
+        loading: false,
+        emailProcessingError: null
+      });
+    }
+    // handle the possible error message
+    else if (messageData?.type === 'EMAIL_SUMMARY_ERROR') {
+      console.error('❌ email summary error:', messageData.error);
+      updateState({
+        loading: false,
+        emailProcessingError: messageData.error || 'get email summary failed'
+      });
+    }
+  }, [updateState]);
 
-  }, []);
   
   // only set the message listener once when the component is mounted
   useEffect(() => {
@@ -448,7 +465,7 @@ const DailyUserView = ({ onReturnToSettings }) => {
               {uiState.currentEmailSummary.subject}
             </Text>
             <Text style={{ display: 'block', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 500 }}>Sender:</span> {uiState.currentEmailSummary.sender}
+              <span style={{ fontWeight: 500 }}>From:</span> {uiState.currentEmailSummary.sender_name}
             </Text>
             <Text block style={{ lineHeight: '1.5' }}>
               {uiState.currentEmailSummary.summary}
