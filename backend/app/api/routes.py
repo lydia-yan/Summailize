@@ -71,32 +71,34 @@ def summarize_email():
         user_id = data.get('user_id')
         
         if not all([subject, sender, received_date, user_id]):
-            return jsonify({"error": "Missing subject, sender, received_date, or user_id"}), 400
-
-        logger.info(f"Received per email summary request, JSON data: {data}")
+            return jsonify({"error": "Missing required fields"}), 400
         
-        # use fetch_emails.py to get the email content
+        # get the email content
         from app.gmail.fetch_emails import _build_query, get_emails_by_query
         gmail_query = _build_query(subject, sender, received_date)
-
-        # extract the email id from the url
+        
         # Fetch emails (only one)
-        emails = get_emails_by_query(gmail_query=gmail_query, user_id=user_id, max_total=1)
-
-        if not emails:
-            return jsonify({"error": "No matching email found."}), 404
-        
-        
-        # get the email details
-        from app.summarizer.summary_checker import run_per_email_summary
-        run_per_email_summary(user_id, emails)
-        
-        # store the summary to the database
-        from app.storage.db import get_per_email_summary
-        
-        return jsonify(get_per_email_summary(user_id,emails[0]["id"]))
+        try:
+            emails = get_emails_by_query(gmail_query=gmail_query, user_id=user_id, max_total=1)
+            if not emails:
+                return jsonify({"error": "No matching email found"}), 404
+            
+            # generate email summary
+            from app.summarizer.summary_checker import run_per_email_summary
+            run_per_email_summary(user_id, emails)
+            
+            # get the summary from the database
+            from app.storage.db import get_per_email_summary
+            summary = get_per_email_summary(user_id, emails[0]["id"])
+            if not summary:
+                return jsonify({"error": "Failed to generate summary"}), 500
+                
+            return jsonify(summary)
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+            
     except Exception as e:
-        logger.error(f"Error processing email: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @api.route('/summarize/overall', methods=['POST'])
@@ -133,7 +135,6 @@ def periodic_summary():
         return jsonify(summary)
     
     except Exception as e:
-        logger.error(f"Error generating periodic summary: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @api.route('/settings', methods=['POST'])
@@ -161,7 +162,6 @@ def save_settings():
         })
     
     except Exception as e:
-        logger.error(f"Error saving settings: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 # test the scheduler
