@@ -72,7 +72,11 @@ def store_per_email_summary(user_id: str, email_data: dict):
     }
     """
     email_id = email_data["id"]
-    data_without_id = {k: v for k, v in email_data.items() if k != "id"} #not sure if need to keep the id 
+    data_without_id = {k: v for k, v in email_data.items() if k != "id"}
+    
+    # If summary is empty or None, use subject as fallback
+    if not data_without_id.get("summary"):
+        data_without_id["summary"] = data_without_id.get("subject", "")
 
     doc_ref = db.collection('users').document(user_id).collection('email_summaries').document(email_id)
     doc_ref.set(data_without_id)
