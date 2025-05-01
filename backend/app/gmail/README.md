@@ -48,7 +48,7 @@ GOOGLE_CLIENT_SECRET_PATH=credentials/client_secret_.json
     "display_name": "Alice Chen",
     "email": "alice@example.com"
   },
-  "internalDate": "1713412345000"  // unix ms since epoch
+  "internalDate": "1713412345000"
 }
 ```
 
