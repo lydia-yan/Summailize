@@ -1,4 +1,4 @@
-# Backend
+# Summarization Agent (Backend) 
 
 ## Features
 - Connects to Gmail API to fetch recent user emails
@@ -20,7 +20,8 @@
 ### 2. Installation
 ```bash
 # Clone the repo
-
+git clone https://github.com/lydia-yan/summailize.git
+cd summailize
 
 # Create virtual environment
 python -m venv .venv
@@ -28,7 +29,6 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
-
 
 ```
 ### 3. Environment Variables
