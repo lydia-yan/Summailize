@@ -53,12 +53,12 @@ You can find how to create the above keys in there files:
 - [Gmail API Key](./app/gmail/README.md)
 
 ## How to Run
-1. Run the Backend API Server (FastAPI)
+1. Run the Backend API Server (FlaskAPI)
 ```python
 cd backend
 python main.py
 ```
-This will start the FastAPI server to handle email fetching, summarization, and data storage.
+This will start the Flask API server to handle email fetching, summarization, and data storage.
 
 
 2. Build and Run the Frontend (Chrome Extension)
@@ -85,7 +85,7 @@ Once set up, you're ready to use the Gmail Summarizer!
 
 ## Tech Stack
 - Python 3.10+
-- FastAPI – REST API backend
+- Flask API – REST API backend
 - Google Firestore – NoSQL document storage
 - Azure OpenAI – AI summarization models
 - Gmail API – Email fetching

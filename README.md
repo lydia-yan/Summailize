@@ -7,14 +7,14 @@
 
 
 
-**Summailize** is a lightweight **AI agent** that automatically summarizes Gmail messages into short, actionable insights — all through a Chrome Extension powered by a FastAPI backend. It helps you stay on top of your inbox without reading long emails.
+**Summailize** is a lightweight **AI agent** that automatically summarizes Gmail messages into short, actionable insights — all through a Chrome Extension powered by a Flask backend. It helps you stay on top of your inbox without reading long emails.
 
 ## Key Features
 - AI-powered **autonomous summarization agent**
 - Per-email and periodic digest summaries
 - Google login & personalized data management
 - Timezone-aware background scheduling
-- Chrome extension frontend, FastAPI backend
+- Chrome extension frontend, Flask backend
 - Modular pipeline with clean separation of logic for AI inference, storage, and scheduling
 
 ## Why It’s Useful
@@ -68,7 +68,7 @@ For more backend agent config, see [`backend/README.md`](./backend/README.md).
 
 ---
 
-### 3. Start the Backend AI Agent (FastAPI)
+### 3. Start the Backend AI Agent (Flask API)
 
 ```bash
 cd backend
@@ -103,7 +103,7 @@ Here’s what your summarization agent can do:
     `POST /api/summarize/overall` → Summarize multiple emails for a timeframe
 
 ## Built With
-- **FastAPI** for backend agents
+- **Flask API** for backend agents
 - **Azure OpenAI** for summarization via GPT models
 - **Firebase** for persistent storage
 - **React** for frontend UI
@@ -113,7 +113,7 @@ Here’s what your summarization agent can do:
 ## Project Structure
 ```
 .
-├── backend/                # FastAPI-based AI agent logic (detailed README inside)
+├── backend/                # Flask API-based AI agent logic (detailed README inside)
 │   ├── app/
 │   └── ...
 ├── frontend/               # Chrome extension frontend (React)
